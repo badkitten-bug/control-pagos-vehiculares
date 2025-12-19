@@ -1,13 +1,15 @@
 # Frontend Dockerfile - React + Vite
-FROM node:20 AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Clean install and install optional rollup dependencies
+RUN npm cache clean --force && \
+    rm -rf node_modules && \
+    npm install --include=optional
 
 # Copy source code
 COPY . .
