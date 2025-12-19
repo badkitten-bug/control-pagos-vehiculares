@@ -167,4 +167,68 @@ export class PaymentSchedulesService {
       order: { numeroCuota: 'ASC' },
     });
   }
+
+  /**
+   * Apply payment in cascade to pending installments.
+   * If payment exceeds one installment, the excess is applied to the next.
+   * Returns the list of affected schedules.
+   */
+  async applyCascadePayment(contractId: number, monto: number): Promise<PaymentSchedule[]> {
+    // Get all unpaid schedules ordered by due date
+    const pendingSchedules = await this.scheduleRepository.find({
+      where: [
+        { contractId, estado: ScheduleStatus.PENDIENTE },
+        { contractId, estado: ScheduleStatus.VENCIDA },
+      ],
+      order: { numeroCuota: 'ASC' },
+    });
+
+    if (pendingSchedules.length === 0) {
+      return [];
+    }
+
+    let remainingAmount = monto;
+    const affectedSchedules: PaymentSchedule[] = [];
+
+    for (const schedule of pendingSchedules) {
+      if (remainingAmount <= 0) break;
+
+      const saldo = parseFloat(schedule.saldo.toString());
+      const montoPagadoActual = parseFloat(schedule.montoPagado?.toString() || '0');
+
+      if (remainingAmount >= saldo) {
+        // Pay off this installment completely
+        schedule.montoPagado = montoPagadoActual + saldo;
+        schedule.saldo = 0;
+        schedule.estado = ScheduleStatus.PAGADA;
+        remainingAmount -= saldo;
+      } else {
+        // Partial payment
+        schedule.montoPagado = montoPagadoActual + remainingAmount;
+        schedule.saldo = Math.round((saldo - remainingAmount) * 100) / 100;
+        remainingAmount = 0;
+      }
+
+      affectedSchedules.push(schedule);
+    }
+
+    // Save all affected schedules
+    await this.scheduleRepository.save(affectedSchedules);
+
+    return affectedSchedules;
+  }
+
+  /**
+   * Get total pending balance for a contract
+   */
+  async getTotalPendingBalance(contractId: number): Promise<number> {
+    const result = await this.scheduleRepository
+      .createQueryBuilder('schedule')
+      .select('SUM(schedule.saldo)', 'total')
+      .where('schedule.contractId = :contractId', { contractId })
+      .andWhere('schedule.estado != :paid', { paid: ScheduleStatus.PAGADA })
+      .getRawOne();
+
+    return parseFloat(result?.total || 0);
+  }
 }

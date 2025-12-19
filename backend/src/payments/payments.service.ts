@@ -32,9 +32,9 @@ export class PaymentsService {
       await this.contractsService.markInitialPaymentRegistered(dto.contractId);
     }
 
-    // If it's associated with a schedule, update the schedule
-    if (dto.scheduleId) {
-      await this.schedulesService.updateScheduleStatus(dto.scheduleId, dto.importe);
+    // For installment payments, use cascade logic
+    if (dto.tipo === PaymentType.CUOTA) {
+      await this.schedulesService.applyCascadePayment(dto.contractId, dto.importe);
     }
 
     return savedPayment;

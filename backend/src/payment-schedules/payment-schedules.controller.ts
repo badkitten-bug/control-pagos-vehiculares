@@ -20,6 +20,12 @@ export class PaymentSchedulesController {
     return this.schedulesService.getNextPending(contractId);
   }
 
+  @Get('contract/:contractId/balance')
+  async getTotalPendingBalance(@Param('contractId', ParseIntPipe) contractId: number) {
+    const balance = await this.schedulesService.getTotalPendingBalance(contractId);
+    return { balance };
+  }
+
   @Post('update-overdue')
   updateOverdueStatus() {
     return this.schedulesService.updateOverdueStatus();

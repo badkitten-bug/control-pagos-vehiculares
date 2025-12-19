@@ -113,7 +113,7 @@ export function ContractDetail() {
       </div>
 
       {/* Contract Info */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="glass rounded-xl p-6">
           <h3 className="text-sm text-slate-400 mb-1">Precio Total</h3>
           <p className="text-2xl font-bold text-white">S/ {parseFloat(contract.precio.toString()).toFixed(2)}</p>
@@ -128,9 +128,28 @@ export function ContractDetail() {
           </p>
         </div>
         <div className="glass rounded-xl p-6">
-          <h3 className="text-sm text-slate-400 mb-1">Cuotas</h3>
-          <p className="text-2xl font-bold text-white">{contract.numeroCuotas} ({contract.frecuencia})</p>
+          <h3 className="text-sm text-slate-400 mb-1">Saldo Pendiente</h3>
+          <p className="text-2xl font-bold text-red-400">
+            S/ {schedule.reduce((sum, s) => sum + parseFloat(s.saldo?.toString() || '0'), 0).toFixed(2)}
+          </p>
         </div>
+        <div className="glass rounded-xl p-6">
+          <h3 className="text-sm text-slate-400 mb-1">Total Pagado</h3>
+          <p className="text-2xl font-bold text-green-400">
+            S/ {(payments.reduce((sum, p) => sum + parseFloat(p.importe?.toString() || '0'), 0)).toFixed(2)}
+          </p>
+        </div>
+      </div>
+      <div className="glass rounded-xl p-4">
+        <p className="text-sm text-slate-400">
+          <span className="font-medium text-white">Cuotas:</span> {contract.numeroCuotas} ({contract.frecuencia})
+          {contract.comisionPorcentaje > 0 && (
+            <span className="ml-4"><span className="font-medium text-white">Comisión:</span> {contract.comisionPorcentaje}%</span>
+          )}
+          {contract.moraPorcentaje > 0 && (
+            <span className="ml-4"><span className="font-medium text-white">Mora diaria:</span> {contract.moraPorcentaje}%</span>
+          )}
+        </p>
       </div>
 
       {/* Quick Actions */}
