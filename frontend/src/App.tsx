@@ -10,6 +10,7 @@ import { ContractDetail } from './pages/contracts/ContractDetail';
 import { PaymentRegister } from './pages/payments/PaymentRegister';
 import { ArrearsReport } from './pages/reports/ArrearsReport';
 import { TrafficLightReport } from './pages/reports/TrafficLightReport';
+import { Settings } from './pages/Settings';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
             <Route path="/payments" element={<PaymentRegister />} />
             <Route path="/reports" element={<ArrearsReport />} />
             <Route path="/reports/traffic-light" element={<TrafficLightReport />} />
+            <Route path="/settings" element={<Settings />} />
           </Route>
 
           {/* Fallback */}

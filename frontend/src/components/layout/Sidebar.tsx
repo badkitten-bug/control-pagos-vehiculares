@@ -9,6 +9,7 @@ import {
   Menu,
   X,
   CircleDot,
+  Settings,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -20,6 +21,7 @@ const navItems = [
   { path: '/payments', label: 'Caja', icon: CreditCard },
   { path: '/reports', label: 'Atrasos', icon: BarChart3 },
   { path: '/reports/traffic-light', label: 'Semáforo', icon: CircleDot },
+  { path: '/settings', label: 'Configuración', icon: Settings },
 ];
 
 export function Sidebar() {
