@@ -57,7 +57,8 @@ export class SettingsController {
       },
     }),
   )
-  async uploadLogo(@UploadedFile() file: Express.Multer.File) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async uploadLogo(@UploadedFile() file: any) {
     if (!file) {
       return { error: 'No se recibió archivo' };
     }
