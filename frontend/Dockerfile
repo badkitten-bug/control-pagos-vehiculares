@@ -1,14 +1,16 @@
 # Frontend Dockerfile - React + Vite
 FROM node:20-alpine AS builder
 
+# Add libc compatibility for native modules
+RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY bun.lock* ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies with proper flags for Alpine
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY . .
@@ -29,3 +31,4 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
+
