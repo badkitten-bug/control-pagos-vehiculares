@@ -3,13 +3,13 @@ FROM node:20-bookworm AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package.json only (NOT package-lock.json)
+COPY package.json ./
 
-# Install dependencies, then rebuild native binaries for this platform
-RUN npm install && npm rebuild
+# Fresh install on Linux - this will get correct native binaries
+RUN npm install
 
-# Copy source code
+# Copy source code (excluding package-lock.json via .dockerignore)
 COPY . .
 
 # Build the application
