@@ -60,6 +60,8 @@ export interface Contract {
   clienteDireccion?: string;
   observaciones?: string;
   pagoInicialRegistrado: boolean;
+  comisionPorcentaje?: number;
+  moraPorcentaje?: number;
   cronograma?: PaymentSchedule[];
   createdAt: string;
   updatedAt: string;
