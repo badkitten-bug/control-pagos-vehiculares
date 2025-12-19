@@ -143,10 +143,10 @@ export function ContractDetail() {
       <div className="glass rounded-xl p-4">
         <p className="text-sm text-slate-400">
           <span className="font-medium text-white">Cuotas:</span> {contract.numeroCuotas} ({contract.frecuencia})
-          {contract.comisionPorcentaje > 0 && (
+          {(contract.comisionPorcentaje ?? 0) > 0 && (
             <span className="ml-4"><span className="font-medium text-white">Comisión:</span> {contract.comisionPorcentaje}%</span>
           )}
-          {contract.moraPorcentaje > 0 && (
+          {(contract.moraPorcentaje ?? 0) > 0 && (
             <span className="ml-4"><span className="font-medium text-white">Mora diaria:</span> {contract.moraPorcentaje}%</span>
           )}
         </p>
