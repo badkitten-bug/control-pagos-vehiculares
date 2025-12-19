@@ -28,7 +28,10 @@ export function Login() {
       navigate('/');
     } catch (error: any) {
       console.error('Login error:', error);
-      toast.error(error.response?.data?.message || 'Error al iniciar sesión');
+      const message = error.response?.data?.message 
+        || error.message 
+        || 'Credenciales incorrectas';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
