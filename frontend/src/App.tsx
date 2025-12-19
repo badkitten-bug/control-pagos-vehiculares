@@ -11,6 +11,7 @@ import { PaymentRegister } from './pages/payments/PaymentRegister';
 import { ArrearsReport } from './pages/reports/ArrearsReport';
 import { TrafficLightReport } from './pages/reports/TrafficLightReport';
 import { Settings } from './pages/Settings';
+import { ClientList } from './pages/clients/ClientList';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route element={<MainLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/vehicles" element={<VehicleList />} />
+            <Route path="/clients" element={<ClientList />} />
             <Route path="/contracts" element={<ContractList />} />
             <Route path="/contracts/:id" element={<ContractDetail />} />
             <Route path="/payments" element={<PaymentRegister />} />

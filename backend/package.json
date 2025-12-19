@@ -28,6 +28,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/serve-static": "^5.0.4",
     "@nestjs/typeorm": "^11.0.0",
+    "@types/pdfkit": "^0.17.4",
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^12.5.0",
     "class-transformer": "^0.5.1",

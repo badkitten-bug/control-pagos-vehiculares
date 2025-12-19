@@ -13,6 +13,8 @@ import { PaymentSchedulesModule } from './payment-schedules/payment-schedules.mo
 import { PaymentsModule } from './payments/payments.module';
 import { ReportsModule } from './reports/reports.module';
 import { SettingsModule } from './settings/settings.module';
+import { ClientsModule } from './clients/clients.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
@@ -29,6 +31,7 @@ import { SettingsModule } from './settings/settings.module';
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true, // Only for development
     }),
+    AuditModule, // Global module, register first
     AuthModule,
     UsersModule,
     VehiclesModule,
@@ -37,6 +40,7 @@ import { SettingsModule } from './settings/settings.module';
     PaymentsModule,
     ReportsModule,
     SettingsModule,
+    ClientsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

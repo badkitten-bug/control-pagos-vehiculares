@@ -10,6 +10,7 @@ import {
   X,
   CircleDot,
   Settings,
+  Users,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -17,6 +18,7 @@ import { useAuth } from '../../context/AuthContext';
 const navItems = [
   { path: '/', label: 'Inicio', icon: Home },
   { path: '/vehicles', label: 'Vehículos', icon: Car },
+  { path: '/clients', label: 'Clientes', icon: Users },
   { path: '/contracts', label: 'Contratos', icon: FileText },
   { path: '/payments', label: 'Caja', icon: CreditCard },
   { path: '/reports', label: 'Atrasos', icon: BarChart3 },

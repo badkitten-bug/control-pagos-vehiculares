@@ -99,4 +99,12 @@ export class PaymentsService {
       order: { fechaPago: 'DESC' },
     });
   }
+
+  async findById(id: number): Promise<Payment | null> {
+    return this.paymentRepository.findOne({
+      where: { id },
+      relations: ['contract', 'contract.vehicle'],
+    });
+  }
 }
+
