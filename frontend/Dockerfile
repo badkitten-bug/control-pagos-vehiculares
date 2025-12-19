@@ -1,15 +1,14 @@
 # Frontend Dockerfile - React + Vite
-FROM node:20-slim AS builder
+FROM node:20-bookworm AS builder
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Clean install and install optional rollup dependencies
-RUN npm cache clean --force && \
-    rm -rf node_modules && \
-    npm install --include=optional
+# Install dependencies and fix rollup platform issue
+RUN npm install && \
+    npm install @rollup/rollup-linux-x64-gnu --save-optional
 
 # Copy source code
 COPY . .
