@@ -1,0 +1,51 @@
+services:
+  # Backend - NestJS API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cpv-backend
+    restart: unless-stopped
+    expose:
+      - "3001"
+    volumes:
+      - ./data:/app/data # Persist SQLite database
+    environment:
+      - NODE_ENV=production
+      - DATABASE_PATH=/app/data/database.sqlite
+    networks:
+      - cpv-network
+
+  # Frontend - React/Vite with internal Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cpv-frontend
+    restart: unless-stopped
+    expose:
+      - "80"
+    depends_on:
+      - backend
+    networks:
+      - cpv-network
+
+  # Main Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: cpv-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - cpv-network
+
+networks:
+  cpv-network:
+    driver: bridge
