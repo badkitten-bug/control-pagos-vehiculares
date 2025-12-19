@@ -18,7 +18,7 @@ import { ReportsModule } from './reports/reports.module';
     }),
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
-      database: 'database.sqlite',
+      database: process.env.DATABASE_PATH || 'database.sqlite',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true, // Only for development
     }),
