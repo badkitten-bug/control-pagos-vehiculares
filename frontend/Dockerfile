@@ -6,9 +6,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies and fix native module issues (rollup + lightningcss)
-RUN npm install && \
-    npm install @rollup/rollup-linux-x64-gnu lightningcss-linux-x64-gnu --save-optional
+# Install dependencies, then rebuild native binaries for this platform
+RUN npm install && npm rebuild
 
 # Copy source code
 COPY . .
