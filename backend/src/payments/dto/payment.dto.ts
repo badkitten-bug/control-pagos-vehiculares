@@ -6,6 +6,7 @@ import {
   IsDateString,
   IsPositive,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { PaymentType, PaymentMethod } from '../payment.entity';
 
 export class CreatePaymentDto {
@@ -40,6 +41,7 @@ export class CreatePaymentDto {
 
 export class SearchPaymentsDto {
   @IsOptional()
+  @Transform(({ value }) => value ? parseInt(value, 10) : undefined)
   @IsNumber()
   contractId?: number;
 
@@ -52,10 +54,13 @@ export class SearchPaymentsDto {
   fechaHasta?: string;
 
   @IsOptional()
+  @Transform(({ value }) => parseInt(value, 10) || 1)
   @IsNumber()
   page?: number = 1;
 
   @IsOptional()
+  @Transform(({ value }) => parseInt(value, 10) || 10)
   @IsNumber()
   limit?: number = 10;
 }
+
