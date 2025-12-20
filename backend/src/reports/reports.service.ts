@@ -6,8 +6,8 @@ import { PaymentSchedule, ScheduleStatus } from '../payment-schedules/payment-sc
 import { Payment } from '../payments/payment.entity';
 import { Vehicle } from '../vehicles/vehicle.entity';
 import { differenceInDays, startOfDay } from 'date-fns';
-import * as ExcelJS from 'exceljs';
-import * as PDFDocument from 'pdfkit';
+import ExcelJS from 'exceljs';
+import PDFDocument from 'pdfkit';
 
 export interface ArrearsReportItem {
   placa: string;

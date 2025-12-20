@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SettingsService } from '../settings/settings.service';
 import { Payment } from '../payments/payment.entity';
 import { Contract } from '../contracts/contract.entity';
-import * as PDFDocument from 'pdfkit';
+import PDFDocument from 'pdfkit';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
