@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Plus, Search, Edit2, Trash2, Phone, Mail, MapPin } from 'lucide-react';
-import { clientService, Client, CreateClientDto } from '../services/client.service';
-import { Button, Input, Modal } from '../components/ui';
+import { clientService, Client, CreateClientDto } from '../../services/client.service';
+import { Button, Input, Modal } from '../../components/ui';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
