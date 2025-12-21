@@ -53,11 +53,22 @@ export function ContractDetail() {
 
   const openPaymentModal = (scheduleItem?: PaymentSchedule) => {
     setSelectedSchedule(scheduleItem || null);
+    
+    // Determine payment type:
+    // - If scheduleItem provided -> Cuota
+    // - If initial payment not registered -> Pago Inicial
+    // - Otherwise -> Cuota (for cascade payments)
+    const defaultTipo = scheduleItem 
+      ? 'Cuota' 
+      : (!contract?.pagoInicialRegistrado && contract?.pagoInicial > 0) 
+        ? 'Pago Inicial' 
+        : 'Cuota';
+    
     reset({
       fechaPago: new Date().toISOString().split('T')[0],
       medioPago: 'Efectivo',
-      importe: scheduleItem ? scheduleItem.saldo : contract?.pagoInicial,
-      tipo: scheduleItem ? 'Cuota' : 'Pago Inicial',
+      importe: scheduleItem ? scheduleItem.saldo : (defaultTipo === 'Pago Inicial' ? contract?.pagoInicial : ''),
+      tipo: defaultTipo,
     });
     setIsPaymentModalOpen(true);
   };

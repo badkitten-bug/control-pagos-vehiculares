@@ -19,6 +19,11 @@ export class PaymentsService {
   async create(dto: CreatePaymentDto, user: User): Promise<Payment> {
     const contract = await this.contractsService.findById(dto.contractId);
 
+    console.log('=== PAYMENT CREATE ===');
+    console.log('Tipo:', dto.tipo);
+    console.log('Importe:', dto.importe);
+    console.log('ContractId:', dto.contractId);
+
     const payment = this.paymentRepository.create({
       ...dto,
       usuarioId: user.id,
@@ -28,13 +33,22 @@ export class PaymentsService {
     const savedPayment = await this.paymentRepository.save(payment);
 
     // If it's an initial payment, mark contract
-    if (dto.tipo === PaymentType.PAGO_INICIAL) {
+    if (dto.tipo === PaymentType.PAGO_INICIAL || dto.tipo === 'Pago Inicial') {
+      console.log('>>> Marking initial payment');
       await this.contractsService.markInitialPaymentRegistered(dto.contractId);
     }
 
     // For installment payments, use cascade logic
-    if (dto.tipo === PaymentType.CUOTA) {
-      await this.schedulesService.applyCascadePayment(dto.contractId, dto.importe);
+    // Check both enum value and string value for compatibility
+    if (dto.tipo === PaymentType.CUOTA || dto.tipo === 'Cuota') {
+      console.log('>>> Applying CASCADE payment for:', dto.importe);
+      const affected = await this.schedulesService.applyCascadePayment(dto.contractId, dto.importe);
+      console.log('>>> Affected schedules:', affected.length);
+      affected.forEach(s => {
+        console.log(`   Cuota ${s.numeroCuota}: saldo=${s.saldo}, estado=${s.estado}`);
+      });
+    } else {
+      console.log('>>> NOT applying cascade, tipo is:', dto.tipo);
     }
 
     return savedPayment;
