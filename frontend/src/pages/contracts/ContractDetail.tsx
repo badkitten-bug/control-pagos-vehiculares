@@ -60,14 +60,14 @@ export function ContractDetail() {
     // - Otherwise -> Cuota (for cascade payments)
     const defaultTipo = scheduleItem 
       ? 'Cuota' 
-      : (!contract?.pagoInicialRegistrado && contract?.pagoInicial > 0) 
+      : (!contract?.pagoInicialRegistrado && (contract?.pagoInicial ?? 0) > 0) 
         ? 'Pago Inicial' 
         : 'Cuota';
     
     reset({
       fechaPago: new Date().toISOString().split('T')[0],
       medioPago: 'Efectivo',
-      importe: scheduleItem ? scheduleItem.saldo : (defaultTipo === 'Pago Inicial' ? contract?.pagoInicial : ''),
+      importe: scheduleItem ? scheduleItem.saldo : (defaultTipo === 'Pago Inicial' ? (contract?.pagoInicial ?? '') : ''),
       tipo: defaultTipo,
     });
     setIsPaymentModalOpen(true);
