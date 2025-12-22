@@ -201,11 +201,13 @@ export function ClientList() {
           <div className="grid grid-cols-2 gap-4">
             <Input
               label="Nombres"
+              uppercase
               error={errors.nombres?.message}
               {...register('nombres', { required: 'Requerido' })}
             />
             <Input
               label="Apellidos"
+              uppercase
               error={errors.apellidos?.message}
               {...register('apellidos', { required: 'Requerido' })}
             />

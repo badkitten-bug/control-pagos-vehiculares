@@ -193,19 +193,22 @@ export function VehicleList() {
             <Input
               label="Placa"
               placeholder="ABC-123"
+              uppercase
               disabled={!!editingVehicle}
               error={errors.placa?.message as string}
               {...register('placa', { required: 'Requerido' })}
             />
             <Input
               label="Marca"
-              placeholder="Toyota"
+              placeholder="TOYOTA"
+              uppercase
               error={errors.marca?.message as string}
               {...register('marca', { required: 'Requerido' })}
             />
             <Input
               label="Modelo"
-              placeholder="Corolla"
+              placeholder="COROLLA"
+              uppercase
               error={errors.modelo?.message as string}
               {...register('modelo', { required: 'Requerido' })}
             />

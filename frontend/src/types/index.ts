@@ -90,6 +90,7 @@ export type PaymentMethod = 'Efectivo' | 'Transferencia' | 'Yape' | 'Plin' | 'Ta
 export interface Payment {
   id: number;
   contractId: number;
+  contract?: Contract;
   scheduleId?: number;
   tipo: PaymentType;
   importe: number;

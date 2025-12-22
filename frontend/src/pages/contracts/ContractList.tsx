@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Eye, Play, XCircle } from 'lucide-react';
 import { contractService, vehicleService } from '../../services';
+import { clientService, Client } from '../../services/client.service';
 import { Button, Input, StatusBadge, Modal, Select, SearchableSelect } from '../../components/ui';
 import type { Contract, Vehicle } from '../../types';
 import toast from 'react-hot-toast';
@@ -24,7 +25,9 @@ export function ContractList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVehicleId, setSelectedVehicleId] = useState('');
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
+  const [clients, setClients] = useState<Client[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState('');
 
   useEffect(() => {
     loadContracts();
@@ -51,16 +54,40 @@ export function ContractList() {
 
   const handleCreate = async () => {
     try {
-      const vehicles = await vehicleService.getAvailable();
+      const [vehicles, clientList] = await Promise.all([
+        vehicleService.getAvailable(),
+        clientService.getActive(),
+      ]);
       setAvailableVehicles(vehicles);
+      setClients(clientList);
       setSelectedVehicleId('');
+      setSelectedClientId('');
       reset({
         fechaInicio: new Date().toISOString().split('T')[0],
         frecuencia: 'Mensual',
+        clienteNombre: '',
+        clienteDni: '',
+        clienteTelefono: '',
       });
       setIsModalOpen(true);
     } catch (error) {
-      toast.error('Error al cargar vehículos disponibles');
+      toast.error('Error al cargar datos');
+    }
+  };
+
+  const handleClientSelect = (clientId: string) => {
+    setSelectedClientId(clientId);
+    if (clientId) {
+      const client = clients.find(c => c.id.toString() === clientId);
+      if (client) {
+        setValue('clienteNombre', `${client.nombres} ${client.apellidos}`);
+        setValue('clienteDni', client.dni);
+        setValue('clienteTelefono', client.telefono || '');
+      }
+    } else {
+      setValue('clienteNombre', '');
+      setValue('clienteDni', '');
+      setValue('clienteTelefono', '');
     }
   };
 
@@ -311,6 +338,20 @@ export function ContractList() {
           </div>
 
           <h4 className="font-medium text-white pt-2">Datos del Cliente</h4>
+          <SearchableSelect
+            label="Seleccionar Cliente Existente"
+            placeholder="Buscar cliente por DNI o nombre..."
+            options={[
+              { value: '', label: '-- Ingresar manualmente --', searchText: '' },
+              ...clients.map(c => ({
+                value: c.id.toString(),
+                label: `${c.dni} - ${c.nombres} ${c.apellidos}`,
+                searchText: `${c.dni} ${c.nombres} ${c.apellidos} ${c.telefono || ''}`,
+              }))
+            ]}
+            value={selectedClientId}
+            onChange={handleClientSelect}
+          />
           <div className="grid grid-cols-2 gap-4">
             <Input
               label="Nombre"
