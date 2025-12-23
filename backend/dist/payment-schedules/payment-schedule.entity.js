@@ -25,10 +25,13 @@ let PaymentSchedule = class PaymentSchedule {
     numeroCuota;
     fechaVencimiento;
     capital;
+    comision;
     total;
     montoPagado;
     saldo;
     estado;
+    montoSubcontrato;
+    subcontractIds;
     createdAt;
 };
 exports.PaymentSchedule = PaymentSchedule;
@@ -58,6 +61,10 @@ __decorate([
     __metadata("design:type", Number)
 ], PaymentSchedule.prototype, "capital", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], PaymentSchedule.prototype, "comision", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2 }),
     __metadata("design:type", Number)
 ], PaymentSchedule.prototype, "total", void 0);
@@ -73,6 +80,14 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'text', default: ScheduleStatus.PENDIENTE }),
     __metadata("design:type", String)
 ], PaymentSchedule.prototype, "estado", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], PaymentSchedule.prototype, "montoSubcontrato", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], PaymentSchedule.prototype, "subcontractIds", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

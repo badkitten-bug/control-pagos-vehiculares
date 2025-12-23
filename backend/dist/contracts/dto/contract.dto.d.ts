@@ -11,6 +11,8 @@ export declare class CreateContractDto {
     clienteTelefono?: string;
     clienteDireccion?: string;
     observaciones?: string;
+    comisionPorcentaje?: number;
+    moraPorcentaje?: number;
 }
 export declare class UpdateContractDto {
     clienteNombre?: string;

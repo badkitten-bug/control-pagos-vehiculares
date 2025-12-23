@@ -231,4 +231,11 @@ export class PaymentSchedulesService {
 
     return parseFloat(result?.total || 0);
   }
+
+  /**
+   * Save multiple schedules at once (used by SubcontractsService)
+   */
+  async saveSchedules(schedules: PaymentSchedule[]): Promise<PaymentSchedule[]> {
+    return this.scheduleRepository.save(schedules);
+  }
 }

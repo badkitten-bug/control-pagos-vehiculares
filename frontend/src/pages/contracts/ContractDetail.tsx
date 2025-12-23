@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, DollarSign } from 'lucide-react';
-import { contractService, paymentService } from '../../services';
+import { ArrowLeft, Plus, DollarSign, FileText } from 'lucide-react';
+import { contractService, paymentService, subcontractService } from '../../services';
 import { Button, Input, Select, StatusBadge, Modal } from '../../components/ui';
-import type { Contract, PaymentSchedule, Payment } from '../../types';
+import { SubcontractModal } from '../../components/SubcontractModal';
+import type { Contract, PaymentSchedule, Payment, Subcontract, CreateSubcontractDto } from '../../types';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import { format } from 'date-fns';
@@ -23,8 +24,10 @@ export function ContractDetail() {
   const [contract, setContract] = useState<Contract | null>(null);
   const [schedule, setSchedule] = useState<PaymentSchedule[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [subcontracts, setSubcontracts] = useState<Subcontract[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isSubcontractModalOpen, setIsSubcontractModalOpen] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<PaymentSchedule | null>(null);
 
   const { register, handleSubmit, reset, setValue } = useForm();
@@ -36,14 +39,16 @@ export function ContractDetail() {
   const loadContract = async (contractId: number) => {
     setIsLoading(true);
     try {
-      const [contractData, scheduleData, paymentsData] = await Promise.all([
+      const [contractData, scheduleData, paymentsData, subcontractsData] = await Promise.all([
         contractService.getById(contractId),
         contractService.getSchedule(contractId),
         paymentService.getByContract(contractId),
+        subcontractService.getByContract(contractId),
       ]);
       setContract(contractData);
       setSchedule(scheduleData);
       setPayments(paymentsData);
+      setSubcontracts(subcontractsData);
     } catch (error) {
       toast.error('Error al cargar contrato');
     } finally {
@@ -176,6 +181,12 @@ export function ContractDetail() {
             <Plus className="w-4 h-4 mr-2" />
             Registrar Pago
           </Button>
+          {contract.estado === 'Vigente' && (
+            <Button variant="secondary" onClick={() => setIsSubcontractModalOpen(true)}>
+              <FileText className="w-4 h-4 mr-2" />
+              Agregar Subcontrato
+            </Button>
+          )}
         </div>
       )}
 
@@ -313,6 +324,88 @@ export function ContractDetail() {
           </div>
         </form>
       </Modal>
+
+      {/* Subcontracts Section */}
+      {subcontracts.length > 0 && (
+        <div className="glass rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-700">
+            <h2 className="text-lg font-semibold text-white">Subcontratos</h2>
+          </div>
+          <div className="divide-y divide-slate-700/50">
+            {subcontracts.map((sub) => (
+              <div key={sub.id} className="px-6 py-4 hover:bg-slate-800/50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-white">{sub.tipo}</span>
+                      <StatusBadge status={sub.estado} />
+                      <span className={`text-xs px-2 py-1 rounded ${sub.modalidad === 'Independiente' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}`}>
+                        {sub.modalidad === 'Independiente' ? 'Cuotas Propias' : 'Agregado a Cuotas'}
+                      </span>
+                    </div>
+                    {sub.descripcion && (
+                      <p className="text-sm text-slate-400 mt-1">{sub.descripcion}</p>
+                    )}
+                    <p className="text-sm text-slate-500 mt-1">
+                      Creado: {format(new Date(sub.createdAt), 'dd/MM/yyyy', { locale: es })}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-white">S/ {parseFloat(sub.monto.toString()).toFixed(2)}</p>
+                    {sub.modalidad === 'Independiente' && sub.numeroCuotas && (
+                      <p className="text-sm text-slate-400">{sub.numeroCuotas} cuotas</p>
+                    )}
+                  </div>
+                </div>
+                {/* Show independent schedule if available */}
+                {sub.modalidad === 'Independiente' && sub.cronograma && sub.cronograma.length > 0 && (
+                  <div className="mt-4 bg-slate-800/50 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-slate-300 mb-2">Cronograma del Subcontrato</h4>
+                    <div className="grid grid-cols-6 gap-2 text-xs text-slate-400 mb-1">
+                      <span>#</span>
+                      <span>Vencimiento</span>
+                      <span>Monto</span>
+                      <span>Pagado</span>
+                      <span>Saldo</span>
+                      <span>Estado</span>
+                    </div>
+                    {sub.cronograma.map((cuota) => (
+                      <div key={cuota.id} className="grid grid-cols-6 gap-2 text-sm py-1 border-t border-slate-700/30">
+                        <span className="text-white">{cuota.numeroCuota}</span>
+                        <span className="text-slate-300">{format(new Date(cuota.fechaVencimiento), 'dd/MM/yy')}</span>
+                        <span className="text-slate-300">S/ {parseFloat(cuota.monto.toString()).toFixed(2)}</span>
+                        <span className="text-slate-300">S/ {parseFloat(cuota.montoPagado.toString()).toFixed(2)}</span>
+                        <span className="text-white font-medium">S/ {parseFloat(cuota.saldo.toString()).toFixed(2)}</span>
+                        <span className={cuota.estado === 'Pagada' ? 'text-green-400' : cuota.estado === 'Vencida' ? 'text-red-400' : 'text-yellow-400'}>
+                          {cuota.estado}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Subcontract Modal */}
+      <SubcontractModal
+        isOpen={isSubcontractModalOpen}
+        onClose={() => setIsSubcontractModalOpen(false)}
+        contractId={contract.id}
+        onSubmit={async (data: CreateSubcontractDto) => {
+          try {
+            await subcontractService.create(data);
+            toast.success('Subcontrato creado exitosamente');
+            setIsSubcontractModalOpen(false);
+            loadContract(contract.id);
+          } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Error al crear subcontrato');
+            throw error;
+          }
+        }}
+      />
     </div>
   );
 }

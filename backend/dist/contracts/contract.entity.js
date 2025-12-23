@@ -44,6 +44,8 @@ let Contract = class Contract {
     clienteDireccion;
     observaciones;
     pagoInicialRegistrado;
+    comisionPorcentaje;
+    moraPorcentaje;
     cronograma;
     pagos;
     createdAt;
@@ -111,6 +113,14 @@ __decorate([
     (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)
 ], Contract.prototype, "pagoInicialRegistrado", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 5, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], Contract.prototype, "comisionPorcentaje", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 5, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], Contract.prototype, "moraPorcentaje", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => payment_schedule_entity_1.PaymentSchedule, (schedule) => schedule.contract),
     __metadata("design:type", Array)

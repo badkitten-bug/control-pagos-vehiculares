@@ -12,4 +12,7 @@ export declare class PaymentSchedulesService {
     updateOverdueStatus(): Promise<void>;
     getOverdueByContract(contractId: number): Promise<PaymentSchedule[]>;
     getNextPending(contractId: number): Promise<PaymentSchedule | null>;
+    applyCascadePayment(contractId: number, monto: number): Promise<PaymentSchedule[]>;
+    getTotalPendingBalance(contractId: number): Promise<number>;
+    saveSchedules(schedules: PaymentSchedule[]): Promise<PaymentSchedule[]>;
 }

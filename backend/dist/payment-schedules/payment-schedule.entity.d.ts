@@ -11,9 +11,12 @@ export declare class PaymentSchedule {
     numeroCuota: number;
     fechaVencimiento: Date;
     capital: number;
+    comision: number;
     total: number;
     montoPagado: number;
     saldo: number;
     estado: ScheduleStatus;
+    montoSubcontrato: number;
+    subcontractIds: string;
     createdAt: Date;
 }

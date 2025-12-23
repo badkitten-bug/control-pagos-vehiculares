@@ -3,7 +3,7 @@ import { Contract, ContractStatus, PaymentFrequency } from '../contracts/contrac
 import { PaymentSchedule } from '../payment-schedules/payment-schedule.entity';
 import { Payment } from '../payments/payment.entity';
 import { Vehicle } from '../vehicles/vehicle.entity';
-import * as ExcelJS from 'exceljs';
+import ExcelJS from 'exceljs';
 export interface ArrearsReportItem {
     placa: string;
     contractId: number;
@@ -37,6 +37,40 @@ export interface QuickSearchResult {
     deudaVencida: number;
     totalPagado: number;
 }
+export type SemaforoStatus = 'verde' | 'ambar' | 'rojo';
+export interface TrafficLightItem {
+    vehicleId: number;
+    placa: string;
+    marca: string;
+    modelo: string;
+    contractId: number;
+    clienteNombre: string;
+    clienteTelefono: string;
+    frecuencia: PaymentFrequency;
+    cuotasVencidas: number;
+    montoVencido: number;
+    diasAtraso: number;
+    semaforo: SemaforoStatus;
+    ultimoPago: Date | null;
+}
+export interface DashboardStats {
+    totalVehiculos: number;
+    vehiculosDisponibles: number;
+    contratosVigentes: number;
+    totalCobradoMes: number;
+    totalPendiente: number;
+    totalMoraAcumulada: number;
+    semaforo: {
+        verde: number;
+        ambar: number;
+        rojo: number;
+    };
+    cobranzasMensuales: {
+        mes: string;
+        cobrado: number;
+        pendiente: number;
+    }[];
+}
 export declare class ReportsService {
     private contractRepository;
     private scheduleRepository;
@@ -50,7 +84,13 @@ export declare class ReportsService {
         estado?: ContractStatus;
         placa?: string;
     }): Promise<ArrearsReportItem[]>;
-    getQuickSearchByPlaca(placa: string): Promise<QuickSearchResult | null>;
+    getQuickSearchByPlaca(placa: string): Promise<QuickSearchResult[]>;
+    getTrafficLightReport(filters?: {
+        semaforo?: SemaforoStatus;
+        placa?: string;
+        frecuencia?: PaymentFrequency;
+    }): Promise<TrafficLightItem[]>;
     exportArrearsToExcel(data: ArrearsReportItem[]): Promise<ExcelJS.Workbook>;
     exportArrearsToPdf(data: ArrearsReportItem[]): Promise<Buffer>;
+    getDashboardStats(): Promise<DashboardStats>;
 }

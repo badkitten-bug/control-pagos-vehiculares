@@ -27,6 +27,7 @@ let PaymentSchedulesService = class PaymentSchedulesService {
     async generateSchedule(contract) {
         const precio = parseFloat(contract.precio.toString());
         const pagoInicial = parseFloat(contract.pagoInicial.toString());
+        const comisionPorcentaje = parseFloat((contract.comisionPorcentaje || 0).toString());
         const capitalTotal = precio - pagoInicial;
         if (capitalTotal <= 0) {
             throw new common_1.BadRequestException('El pago inicial no puede ser mayor o igual al precio');
@@ -38,13 +39,16 @@ let PaymentSchedulesService = class PaymentSchedulesService {
         for (let i = 1; i <= contract.numeroCuotas; i++) {
             const fechaVencimiento = this.calculateNextDate(fechaActual, contract.frecuencia, i);
             const capitalCuota = i === contract.numeroCuotas ? ajusteFinal : cuotaBase;
+            const comisionCuota = Math.round((capitalCuota * comisionPorcentaje / 100) * 100) / 100;
+            const totalCuota = Math.round((capitalCuota + comisionCuota) * 100) / 100;
             const schedule = this.scheduleRepository.create({
                 contractId: contract.id,
                 numeroCuota: i,
                 fechaVencimiento,
                 capital: capitalCuota,
-                total: capitalCuota,
-                saldo: capitalCuota,
+                comision: comisionCuota,
+                total: totalCuota,
+                saldo: totalCuota,
                 estado: payment_schedule_entity_1.ScheduleStatus.PENDIENTE,
             });
             schedules.push(schedule);
@@ -129,6 +133,52 @@ let PaymentSchedulesService = class PaymentSchedulesService {
             },
             order: { numeroCuota: 'ASC' },
         });
+    }
+    async applyCascadePayment(contractId, monto) {
+        const pendingSchedules = await this.scheduleRepository.find({
+            where: [
+                { contractId, estado: payment_schedule_entity_1.ScheduleStatus.PENDIENTE },
+                { contractId, estado: payment_schedule_entity_1.ScheduleStatus.VENCIDA },
+            ],
+            order: { numeroCuota: 'ASC' },
+        });
+        if (pendingSchedules.length === 0) {
+            return [];
+        }
+        let remainingAmount = monto;
+        const affectedSchedules = [];
+        for (const schedule of pendingSchedules) {
+            if (remainingAmount <= 0)
+                break;
+            const saldo = parseFloat(schedule.saldo.toString());
+            const montoPagadoActual = parseFloat(schedule.montoPagado?.toString() || '0');
+            if (remainingAmount >= saldo) {
+                schedule.montoPagado = montoPagadoActual + saldo;
+                schedule.saldo = 0;
+                schedule.estado = payment_schedule_entity_1.ScheduleStatus.PAGADA;
+                remainingAmount -= saldo;
+            }
+            else {
+                schedule.montoPagado = montoPagadoActual + remainingAmount;
+                schedule.saldo = Math.round((saldo - remainingAmount) * 100) / 100;
+                remainingAmount = 0;
+            }
+            affectedSchedules.push(schedule);
+        }
+        await this.scheduleRepository.save(affectedSchedules);
+        return affectedSchedules;
+    }
+    async getTotalPendingBalance(contractId) {
+        const result = await this.scheduleRepository
+            .createQueryBuilder('schedule')
+            .select('SUM(schedule.saldo)', 'total')
+            .where('schedule.contractId = :contractId', { contractId })
+            .andWhere('schedule.estado != :paid', { paid: payment_schedule_entity_1.ScheduleStatus.PAGADA })
+            .getRawOne();
+        return parseFloat(result?.total || 0);
+    }
+    async saveSchedules(schedules) {
+        return this.scheduleRepository.save(schedules);
     }
 };
 exports.PaymentSchedulesService = PaymentSchedulesService;

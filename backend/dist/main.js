@@ -7,7 +7,13 @@ async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.setGlobalPrefix('api');
     app.enableCors({
-        origin: 'http://localhost:5173',
+        origin: [
+            'http://localhost:5173',
+            'http://localhost:3000',
+            'http://161.132.40.223',
+            'http://sv-gGbrDIE0BxoM6dAKh5SW.cloud.elastika.pe',
+            'https://sv-gGbrDIE0BxoM6dAKh5SW.cloud.elastika.pe',
+        ],
         credentials: true,
     });
     app.useGlobalPipes(new common_1.ValidationPipe({

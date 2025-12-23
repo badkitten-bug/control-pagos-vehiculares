@@ -10,6 +10,8 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const config_1 = require("@nestjs/config");
+const serve_static_1 = require("@nestjs/serve-static");
+const path_1 = require("path");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const auth_module_1 = require("./auth/auth.module");
@@ -19,6 +21,10 @@ const contracts_module_1 = require("./contracts/contracts.module");
 const payment_schedules_module_1 = require("./payment-schedules/payment-schedules.module");
 const payments_module_1 = require("./payments/payments.module");
 const reports_module_1 = require("./reports/reports.module");
+const settings_module_1 = require("./settings/settings.module");
+const clients_module_1 = require("./clients/clients.module");
+const audit_module_1 = require("./audit/audit.module");
+const subcontracts_module_1 = require("./subcontracts/subcontracts.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -28,12 +34,17 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
             }),
+            serve_static_1.ServeStaticModule.forRoot({
+                rootPath: (0, path_1.join)(__dirname, '..', 'uploads'),
+                serveRoot: '/uploads',
+            }),
             typeorm_1.TypeOrmModule.forRoot({
                 type: 'better-sqlite3',
-                database: 'database.sqlite',
+                database: process.env.DATABASE_PATH || 'database.sqlite',
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 synchronize: true,
             }),
+            audit_module_1.AuditModule,
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             vehicles_module_1.VehiclesModule,
@@ -41,6 +52,9 @@ exports.AppModule = AppModule = __decorate([
             payment_schedules_module_1.PaymentSchedulesModule,
             payments_module_1.PaymentsModule,
             reports_module_1.ReportsModule,
+            settings_module_1.SettingsModule,
+            clients_module_1.ClientsModule,
+            subcontracts_module_1.SubcontractsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

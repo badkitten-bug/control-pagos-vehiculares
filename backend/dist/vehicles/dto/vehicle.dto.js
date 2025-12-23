@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SearchVehiclesDto = exports.UpdateMileageDto = exports.UpdateVehicleDto = exports.CreateVehicleDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 const vehicle_entity_1 = require("../vehicle.entity");
 class CreateVehicleDto {
     placa;
@@ -139,6 +140,7 @@ __decorate([
 ], SearchVehiclesDto.prototype, "modelo", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => value ? parseInt(value, 10) : undefined),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], SearchVehiclesDto.prototype, "anio", void 0);
@@ -149,12 +151,14 @@ __decorate([
 ], SearchVehiclesDto.prototype, "estado", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => value ? parseInt(value, 10) : 1),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
 ], SearchVehiclesDto.prototype, "page", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => value ? parseInt(value, 10) : 10),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(1),
     (0, class_validator_1.Max)(100),

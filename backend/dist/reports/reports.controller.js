@@ -60,6 +60,16 @@ let ReportsController = class ReportsController {
     async quickSearch(placa) {
         return this.reportsService.getQuickSearchByPlaca(placa);
     }
+    async getDashboardStats() {
+        return this.reportsService.getDashboardStats();
+    }
+    async getTrafficLightReport(semaforo, placa, frecuencia) {
+        return this.reportsService.getTrafficLightReport({
+            semaforo,
+            placa,
+            frecuencia,
+        });
+    }
 };
 exports.ReportsController = ReportsController;
 __decorate([
@@ -104,6 +114,21 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ReportsController.prototype, "quickSearch", null);
+__decorate([
+    (0, common_1.Get)('dashboard-stats'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ReportsController.prototype, "getDashboardStats", null);
+__decorate([
+    (0, common_1.Get)('traffic-light'),
+    __param(0, (0, common_1.Query)('semaforo')),
+    __param(1, (0, common_1.Query)('placa')),
+    __param(2, (0, common_1.Query)('frecuencia')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], ReportsController.prototype, "getTrafficLightReport", null);
 exports.ReportsController = ReportsController = __decorate([
     (0, common_1.Controller)('reports'),
     __metadata("design:paramtypes", [reports_service_1.ReportsService])

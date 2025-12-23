@@ -30,17 +30,31 @@ let PaymentsService = class PaymentsService {
     }
     async create(dto, user) {
         const contract = await this.contractsService.findById(dto.contractId);
+        const tipoStr = String(dto.tipo);
+        console.log('=== PAYMENT CREATE ===');
+        console.log('Tipo:', tipoStr);
+        console.log('Importe:', dto.importe);
+        console.log('ContractId:', dto.contractId);
         const payment = this.paymentRepository.create({
             ...dto,
             usuarioId: user.id,
             usuarioNombre: `${user.nombre} ${user.apellido || ''}`.trim(),
         });
         const savedPayment = await this.paymentRepository.save(payment);
-        if (dto.tipo === payment_entity_1.PaymentType.PAGO_INICIAL) {
+        if (tipoStr === 'Pago Inicial') {
+            console.log('>>> Marking initial payment');
             await this.contractsService.markInitialPaymentRegistered(dto.contractId);
         }
-        if (dto.scheduleId) {
-            await this.schedulesService.updateScheduleStatus(dto.scheduleId, dto.importe);
+        if (tipoStr === 'Cuota') {
+            console.log('>>> Applying CASCADE payment for:', dto.importe);
+            const affected = await this.schedulesService.applyCascadePayment(dto.contractId, dto.importe);
+            console.log('>>> Affected schedules:', affected.length);
+            affected.forEach(s => {
+                console.log(`   Cuota ${s.numeroCuota}: saldo=${s.saldo}, estado=${s.estado}`);
+            });
+        }
+        else {
+            console.log('>>> NOT applying cascade, tipo is:', tipoStr);
         }
         return savedPayment;
     }
@@ -91,6 +105,12 @@ let PaymentsService = class PaymentsService {
         return this.paymentRepository.findOne({
             where: { contractId },
             order: { fechaPago: 'DESC' },
+        });
+    }
+    async findById(id) {
+        return this.paymentRepository.findOne({
+            where: { id },
+            relations: ['contract', 'contract.vehicle'],
         });
     }
 };

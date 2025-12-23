@@ -50,6 +50,13 @@ export class PaymentSchedule {
   @Column({ type: 'text', default: ScheduleStatus.PENDIENTE })
   estado: ScheduleStatus;
 
+  // Campos para trazabilidad de subcontratos
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  montoSubcontrato: number;
+
+  @Column({ type: 'text', nullable: true })
+  subcontractIds: string; // JSON array de IDs de subcontratos
+
   @CreateDateColumn()
   createdAt: Date;
 }

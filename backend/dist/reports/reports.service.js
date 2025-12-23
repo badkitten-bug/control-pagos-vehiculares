@@ -1,48 +1,18 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReportsService = void 0;
@@ -54,8 +24,8 @@ const payment_schedule_entity_1 = require("../payment-schedules/payment-schedule
 const payment_entity_1 = require("../payments/payment.entity");
 const vehicle_entity_1 = require("../vehicles/vehicle.entity");
 const date_fns_1 = require("date-fns");
-const ExcelJS = __importStar(require("exceljs"));
-const PDFDocument = __importStar(require("pdfkit"));
+const exceljs_1 = __importDefault(require("exceljs"));
+const pdfkit_1 = __importDefault(require("pdfkit"));
 let ReportsService = class ReportsService {
     contractRepository;
     scheduleRepository;
@@ -131,62 +101,139 @@ let ReportsService = class ReportsService {
         return reportItems;
     }
     async getQuickSearchByPlaca(placa) {
-        const vehicle = await this.vehicleRepository.findOne({
-            where: { placa: placa.toUpperCase() },
-        });
-        if (!vehicle)
-            return null;
-        const activeContract = await this.contractRepository.findOne({
-            where: {
-                vehicleId: vehicle.id,
-                estado: contract_entity_1.ContractStatus.VIGENTE,
-            },
-            relations: ['cronograma'],
-        });
-        let proximaCuota = null;
-        let deudaVencida = 0;
-        let totalPagado = 0;
-        if (activeContract) {
-            const nextSchedule = activeContract.cronograma
-                .filter((s) => s.estado === payment_schedule_entity_1.ScheduleStatus.PENDIENTE)
-                .sort((a, b) => new Date(a.fechaVencimiento).getTime() - new Date(b.fechaVencimiento).getTime())[0];
-            if (nextSchedule) {
-                proximaCuota = {
-                    numero: nextSchedule.numeroCuota,
-                    fechaVencimiento: nextSchedule.fechaVencimiento,
-                    importe: parseFloat(nextSchedule.saldo.toString()),
-                };
-            }
-            const today = (0, date_fns_1.startOfDay)(new Date());
-            deudaVencida = activeContract.cronograma
-                .filter((s) => s.estado !== payment_schedule_entity_1.ScheduleStatus.PAGADA &&
-                new Date(s.fechaVencimiento) < today)
-                .reduce((sum, s) => sum + parseFloat(s.saldo.toString()), 0);
-            const payments = await this.paymentRepository.find({
-                where: { contractId: activeContract.id },
+        const vehicles = await this.vehicleRepository
+            .createQueryBuilder('vehicle')
+            .where('vehicle.placa LIKE :placa', { placa: `%${placa.toUpperCase()}%` })
+            .orderBy('vehicle.placa', 'ASC')
+            .take(10)
+            .getMany();
+        if (vehicles.length === 0)
+            return [];
+        const results = [];
+        for (const vehicle of vehicles) {
+            const activeContract = await this.contractRepository.findOne({
+                where: {
+                    vehicleId: vehicle.id,
+                    estado: contract_entity_1.ContractStatus.VIGENTE,
+                },
+                relations: ['cronograma'],
             });
-            totalPagado = payments.reduce((sum, p) => sum + parseFloat(p.importe.toString()), 0);
-        }
-        return {
-            placa: vehicle.placa,
-            estado: vehicle.estado,
-            vehicleStatus: vehicle.estado,
-            contratoActivo: activeContract
-                ? {
-                    id: activeContract.id,
-                    estado: activeContract.estado,
-                    fechaInicio: activeContract.fechaInicio,
-                    precio: parseFloat(activeContract.precio.toString()),
-                    pagoInicial: parseFloat(activeContract.pagoInicial.toString()),
+            let proximaCuota = null;
+            let deudaVencida = 0;
+            let totalPagado = 0;
+            if (activeContract) {
+                const nextSchedule = activeContract.cronograma
+                    .filter((s) => s.estado === payment_schedule_entity_1.ScheduleStatus.PENDIENTE)
+                    .sort((a, b) => new Date(a.fechaVencimiento).getTime() - new Date(b.fechaVencimiento).getTime())[0];
+                if (nextSchedule) {
+                    proximaCuota = {
+                        numero: nextSchedule.numeroCuota,
+                        fechaVencimiento: nextSchedule.fechaVencimiento,
+                        importe: parseFloat(nextSchedule.saldo.toString()),
+                    };
                 }
-                : null,
-            proximaCuota,
-            deudaVencida,
-            totalPagado,
-        };
+                const today = (0, date_fns_1.startOfDay)(new Date());
+                deudaVencida = activeContract.cronograma
+                    .filter((s) => s.estado !== payment_schedule_entity_1.ScheduleStatus.PAGADA &&
+                    new Date(s.fechaVencimiento) < today)
+                    .reduce((sum, s) => sum + parseFloat(s.saldo.toString()), 0);
+                const payments = await this.paymentRepository.find({
+                    where: { contractId: activeContract.id },
+                });
+                totalPagado = payments.reduce((sum, p) => sum + parseFloat(p.importe.toString()), 0);
+            }
+            results.push({
+                placa: vehicle.placa,
+                estado: vehicle.estado,
+                vehicleStatus: vehicle.estado,
+                contratoActivo: activeContract
+                    ? {
+                        id: activeContract.id,
+                        estado: activeContract.estado,
+                        fechaInicio: activeContract.fechaInicio,
+                        precio: parseFloat(activeContract.precio.toString()),
+                        pagoInicial: parseFloat(activeContract.pagoInicial.toString()),
+                    }
+                    : null,
+                proximaCuota,
+                deudaVencida,
+                totalPagado,
+            });
+        }
+        return results;
+    }
+    async getTrafficLightReport(filters) {
+        const today = (0, date_fns_1.startOfDay)(new Date());
+        const queryBuilder = this.contractRepository
+            .createQueryBuilder('contract')
+            .leftJoinAndSelect('contract.vehicle', 'vehicle')
+            .leftJoinAndSelect('contract.cronograma', 'schedule')
+            .where('contract.estado = :estado', { estado: contract_entity_1.ContractStatus.VIGENTE });
+        if (filters?.placa) {
+            queryBuilder.andWhere('vehicle.placa LIKE :placa', {
+                placa: `%${filters.placa.toUpperCase()}%`,
+            });
+        }
+        if (filters?.frecuencia) {
+            queryBuilder.andWhere('contract.frecuencia = :frecuencia', {
+                frecuencia: filters.frecuencia,
+            });
+        }
+        const contracts = await queryBuilder.getMany();
+        const items = [];
+        for (const contract of contracts) {
+            const overdueSchedules = contract.cronograma.filter((s) => s.estado !== payment_schedule_entity_1.ScheduleStatus.PAGADA &&
+                new Date(s.fechaVencimiento) < today);
+            const cuotasVencidas = overdueSchedules.length;
+            const montoVencido = overdueSchedules.reduce((sum, s) => sum + parseFloat(s.saldo.toString()), 0);
+            let diasAtraso = 0;
+            if (overdueSchedules.length > 0) {
+                const oldestOverdue = overdueSchedules.reduce((oldest, s) => new Date(s.fechaVencimiento) < new Date(oldest.fechaVencimiento)
+                    ? s
+                    : oldest);
+                diasAtraso = (0, date_fns_1.differenceInDays)(today, new Date(oldestOverdue.fechaVencimiento));
+            }
+            let semaforo;
+            if (contract.frecuencia === contract_entity_1.PaymentFrequency.DIARIO) {
+                semaforo = diasAtraso >= 3 ? 'rojo' : diasAtraso >= 1 ? 'ambar' : 'verde';
+            }
+            else {
+                semaforo = cuotasVencidas >= 3 ? 'rojo' : cuotasVencidas >= 1 ? 'ambar' : 'verde';
+            }
+            if (filters?.semaforo && filters.semaforo !== semaforo) {
+                continue;
+            }
+            const lastPayment = await this.paymentRepository.findOne({
+                where: { contractId: contract.id },
+                order: { fechaPago: 'DESC' },
+            });
+            items.push({
+                vehicleId: contract.vehicle.id,
+                placa: contract.vehicle.placa,
+                marca: contract.vehicle.marca,
+                modelo: contract.vehicle.modelo,
+                contractId: contract.id,
+                clienteNombre: contract.clienteNombre || '-',
+                clienteTelefono: contract.clienteTelefono || '-',
+                frecuencia: contract.frecuencia,
+                cuotasVencidas,
+                montoVencido,
+                diasAtraso,
+                semaforo,
+                ultimoPago: lastPayment?.fechaPago || null,
+            });
+        }
+        const order = { rojo: 0, ambar: 1, verde: 2 };
+        items.sort((a, b) => {
+            const orderDiff = order[a.semaforo] - order[b.semaforo];
+            if (orderDiff !== 0)
+                return orderDiff;
+            return b.diasAtraso - a.diasAtraso;
+        });
+        return items;
     }
     async exportArrearsToExcel(data) {
-        const workbook = new ExcelJS.Workbook();
+        const workbook = new exceljs_1.default.Workbook();
         const worksheet = workbook.addWorksheet('Reporte de Atrasos');
         worksheet.columns = [
             { header: 'Placa', key: 'placa', width: 12 },
@@ -225,7 +272,7 @@ let ReportsService = class ReportsService {
     }
     async exportArrearsToPdf(data) {
         return new Promise((resolve) => {
-            const doc = new PDFDocument({ margin: 30, size: 'A4', layout: 'landscape' });
+            const doc = new pdfkit_1.default({ margin: 30, size: 'A4', layout: 'landscape' });
             const chunks = [];
             doc.on('data', (chunk) => chunks.push(chunk));
             doc.on('end', () => resolve(Buffer.concat(chunks)));
@@ -273,6 +320,78 @@ let ReportsService = class ReportsService {
             });
             doc.end();
         });
+    }
+    async getDashboardStats() {
+        const today = (0, date_fns_1.startOfDay)(new Date());
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const totalVehiculos = await this.vehicleRepository.count();
+        const vehiculosDisponibles = await this.vehicleRepository.count({
+            where: { estado: 'Disponible' },
+        });
+        const contratosVigentes = await this.contractRepository.count({
+            where: { estado: contract_entity_1.ContractStatus.VIGENTE },
+        });
+        const paymentsThisMonth = await this.paymentRepository
+            .createQueryBuilder('payment')
+            .where('payment.fechaPago >= :startOfMonth', { startOfMonth })
+            .getMany();
+        const totalCobradoMes = paymentsThisMonth.reduce((sum, p) => sum + parseFloat(p.importe.toString()), 0);
+        const pendingSchedules = await this.scheduleRepository.find({
+            where: { estado: payment_schedule_entity_1.ScheduleStatus.PENDIENTE },
+        });
+        const overdueSchedules = await this.scheduleRepository
+            .createQueryBuilder('schedule')
+            .leftJoinAndSelect('schedule.contract', 'contract')
+            .where('schedule.estado != :paid', { paid: payment_schedule_entity_1.ScheduleStatus.PAGADA })
+            .andWhere('schedule.fechaVencimiento < :today', { today })
+            .getMany();
+        const totalPendiente = pendingSchedules.reduce((sum, s) => sum + parseFloat(s.saldo.toString()), 0);
+        let totalMoraAcumulada = 0;
+        for (const schedule of overdueSchedules) {
+            const diasAtraso = (0, date_fns_1.differenceInDays)(today, new Date(schedule.fechaVencimiento));
+            const saldo = parseFloat(schedule.saldo.toString());
+            const moraPct = parseFloat((schedule.contract?.moraPorcentaje || 0).toString());
+            if (moraPct > 0 && diasAtraso > 0) {
+                totalMoraAcumulada += (saldo * moraPct / 100) * diasAtraso;
+            }
+        }
+        const trafficLight = await this.getTrafficLightReport();
+        const semaforo = {
+            verde: trafficLight.filter(t => t.semaforo === 'verde').length,
+            ambar: trafficLight.filter(t => t.semaforo === 'ambar').length,
+            rojo: trafficLight.filter(t => t.semaforo === 'rojo').length,
+        };
+        const cobranzasMensuales = [];
+        for (let i = 5; i >= 0; i--) {
+            const monthStart = new Date(today.getFullYear(), today.getMonth() - i, 1);
+            const monthEnd = new Date(today.getFullYear(), today.getMonth() - i + 1, 0);
+            const monthName = monthStart.toLocaleString('es-PE', { month: 'short' });
+            const payments = await this.paymentRepository
+                .createQueryBuilder('payment')
+                .where('payment.fechaPago >= :start', { start: monthStart })
+                .andWhere('payment.fechaPago <= :end', { end: monthEnd })
+                .getMany();
+            const cobrado = payments.reduce((sum, p) => sum + parseFloat(p.importe.toString()), 0);
+            const schedulesInMonth = await this.scheduleRepository
+                .createQueryBuilder('schedule')
+                .where('schedule.fechaVencimiento >= :start', { start: monthStart })
+                .andWhere('schedule.fechaVencimiento <= :end', { end: monthEnd })
+                .getMany();
+            const pendiente = schedulesInMonth
+                .filter(s => s.estado !== payment_schedule_entity_1.ScheduleStatus.PAGADA)
+                .reduce((sum, s) => sum + parseFloat(s.saldo.toString()), 0);
+            cobranzasMensuales.push({ mes: monthName, cobrado, pendiente });
+        }
+        return {
+            totalVehiculos,
+            vehiculosDisponibles,
+            contratosVigentes,
+            totalCobradoMes,
+            totalPendiente,
+            totalMoraAcumulada: Math.round(totalMoraAcumulada * 100) / 100,
+            semaforo,
+            cobranzasMensuales,
+        };
     }
 };
 exports.ReportsService = ReportsService;

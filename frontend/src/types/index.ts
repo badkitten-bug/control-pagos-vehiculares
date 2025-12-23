@@ -80,6 +80,8 @@ export interface PaymentSchedule {
   montoPagado: number;
   saldo: number;
   estado: ScheduleStatus;
+  montoSubcontrato?: number;
+  subcontractIds?: string;
   createdAt: string;
 }
 
@@ -187,3 +189,46 @@ export interface DashboardStats {
   }[];
 }
 
+// Subcontract types
+export type SubcontractMode = 'Independiente' | 'AgregarACuotas';
+export type SubcontractStatus = 'Vigente' | 'Cancelado' | 'Anulado';
+
+export interface SubcontractSchedule {
+  id: number;
+  subcontractId: number;
+  numeroCuota: number;
+  fechaVencimiento: string;
+  monto: number;
+  montoPagado: number;
+  saldo: number;
+  estado: string;
+  createdAt: string;
+}
+
+export interface Subcontract {
+  id: number;
+  parentContractId: number;
+  parentContract?: Contract;
+  tipo: string;
+  modalidad: SubcontractMode;
+  monto: number;
+  numeroCuotas?: number;
+  frecuencia?: PaymentFrequency;
+  fechaInicio: string;
+  descripcion?: string;
+  estado: SubcontractStatus;
+  cronograma?: SubcontractSchedule[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSubcontractDto {
+  parentContractId: number;
+  tipo: string;
+  modalidad: SubcontractMode;
+  monto: number;
+  numeroCuotas?: number;
+  frecuencia?: PaymentFrequency;
+  fechaInicio: string;
+  descripcion?: string;
+}

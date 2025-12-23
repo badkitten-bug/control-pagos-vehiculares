@@ -14,6 +14,7 @@ const payments_service_1 = require("./payments.service");
 const payment_entity_1 = require("./payment.entity");
 const contracts_module_1 = require("../contracts/contracts.module");
 const payment_schedules_module_1 = require("../payment-schedules/payment-schedules.module");
+const receipts_module_1 = require("../receipts/receipts.module");
 let PaymentsModule = class PaymentsModule {
 };
 exports.PaymentsModule = PaymentsModule;
@@ -23,6 +24,7 @@ exports.PaymentsModule = PaymentsModule = __decorate([
             typeorm_1.TypeOrmModule.forFeature([payment_entity_1.Payment]),
             contracts_module_1.ContractsModule,
             payment_schedules_module_1.PaymentSchedulesModule,
+            receipts_module_1.ReceiptsModule,
         ],
         controllers: [payments_controller_1.PaymentsController],
         providers: [payments_service_1.PaymentsService],

@@ -20,4 +20,5 @@ export declare class PaymentsService {
     findByContract(contractId: number): Promise<Payment[]>;
     getTotalByContract(contractId: number): Promise<number>;
     getLastPayment(contractId: number): Promise<Payment | null>;
+    findById(id: number): Promise<Payment | null>;
 }

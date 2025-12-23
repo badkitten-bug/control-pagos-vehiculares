@@ -29,6 +29,10 @@ let PaymentSchedulesController = class PaymentSchedulesController {
     getNextPending(contractId) {
         return this.schedulesService.getNextPending(contractId);
     }
+    async getTotalPendingBalance(contractId) {
+        const balance = await this.schedulesService.getTotalPendingBalance(contractId);
+        return { balance };
+    }
     updateOverdueStatus() {
         return this.schedulesService.updateOverdueStatus();
     }
@@ -55,6 +59,13 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], PaymentSchedulesController.prototype, "getNextPending", null);
+__decorate([
+    (0, common_1.Get)('contract/:contractId/balance'),
+    __param(0, (0, common_1.Param)('contractId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], PaymentSchedulesController.prototype, "getTotalPendingBalance", null);
 __decorate([
     (0, common_1.Post)('update-overdue'),
     __metadata("design:type", Function),

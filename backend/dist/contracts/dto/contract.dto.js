@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SearchContractsDto = exports.ChangeContractStatusDto = exports.UpdateContractDto = exports.CreateContractDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 const contract_entity_1 = require("../contract.entity");
 class CreateContractDto {
     vehicleId;
@@ -24,6 +25,8 @@ class CreateContractDto {
     clienteTelefono;
     clienteDireccion;
     observaciones;
+    comisionPorcentaje;
+    moraPorcentaje;
 }
 exports.CreateContractDto = CreateContractDto;
 __decorate([
@@ -78,6 +81,18 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateContractDto.prototype, "observaciones", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateContractDto.prototype, "comisionPorcentaje", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateContractDto.prototype, "moraPorcentaje", void 0);
 class UpdateContractDto {
     clienteNombre;
     clienteDni;
@@ -144,12 +159,14 @@ __decorate([
 ], SearchContractsDto.prototype, "clienteNombre", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => value ? parseInt(value, 10) : 1),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
 ], SearchContractsDto.prototype, "page", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => value ? parseInt(value, 10) : 10),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)

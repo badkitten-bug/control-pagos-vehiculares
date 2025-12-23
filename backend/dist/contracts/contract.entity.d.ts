@@ -29,6 +29,8 @@ export declare class Contract {
     clienteDireccion: string;
     observaciones: string;
     pagoInicialRegistrado: boolean;
+    comisionPorcentaje: number;
+    moraPorcentaje: number;
     cronograma: PaymentSchedule[];
     pagos: Payment[];
     createdAt: Date;
