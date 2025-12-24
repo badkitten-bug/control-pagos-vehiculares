@@ -221,6 +221,28 @@ let SubcontractsService = class SubcontractsService {
             .getRawOne();
         return parseFloat(result?.total || 0);
     }
+    async paySchedule(scheduleId, dto) {
+        const schedule = await this.getScheduleById(scheduleId);
+        if (!schedule) {
+            throw new common_1.NotFoundException('Cuota de subcontrato no encontrada');
+        }
+        if (schedule.estado === payment_schedule_entity_1.ScheduleStatus.PAGADA) {
+            throw new common_1.BadRequestException('Esta cuota ya fue pagada');
+        }
+        const monto = parseFloat(dto.monto?.toString() || '0');
+        if (monto <= 0) {
+            throw new common_1.BadRequestException('El monto debe ser mayor a 0');
+        }
+        const currentMontoPagado = parseFloat(schedule.montoPagado?.toString() || '0');
+        const montoTotal = parseFloat(schedule.monto.toString());
+        schedule.montoPagado = Math.round((currentMontoPagado + monto) * 100) / 100;
+        schedule.saldo = Math.round((montoTotal - schedule.montoPagado) * 100) / 100;
+        if (schedule.saldo <= 0) {
+            schedule.saldo = 0;
+            schedule.estado = payment_schedule_entity_1.ScheduleStatus.PAGADA;
+        }
+        return this.scheduleRepository.save(schedule);
+    }
 };
 exports.SubcontractsService = SubcontractsService;
 exports.SubcontractsService = SubcontractsService = __decorate([

@@ -319,4 +319,36 @@ export class SubcontractsService {
 
     return parseFloat(result?.total || 0);
   }
+
+  /**
+   * Pay a subcontract schedule installment
+   */
+  async paySchedule(scheduleId: number, dto: any): Promise<SubcontractSchedule> {
+    const schedule = await this.getScheduleById(scheduleId);
+    if (!schedule) {
+      throw new NotFoundException('Cuota de subcontrato no encontrada');
+    }
+
+    if (schedule.estado === ScheduleStatus.PAGADA) {
+      throw new BadRequestException('Esta cuota ya fue pagada');
+    }
+
+    const monto = parseFloat(dto.monto?.toString() || '0');
+    if (monto <= 0) {
+      throw new BadRequestException('El monto debe ser mayor a 0');
+    }
+
+    const currentMontoPagado = parseFloat(schedule.montoPagado?.toString() || '0');
+    const montoTotal = parseFloat(schedule.monto.toString());
+
+    schedule.montoPagado = Math.round((currentMontoPagado + monto) * 100) / 100;
+    schedule.saldo = Math.round((montoTotal - schedule.montoPagado) * 100) / 100;
+
+    if (schedule.saldo <= 0) {
+      schedule.saldo = 0;
+      schedule.estado = ScheduleStatus.PAGADA;
+    }
+
+    return this.scheduleRepository.save(schedule);
+  }
 }

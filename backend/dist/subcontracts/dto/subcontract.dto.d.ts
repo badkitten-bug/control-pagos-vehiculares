@@ -14,3 +14,10 @@ export declare class SearchSubcontractsDto {
     page?: number;
     limit?: number;
 }
+export declare class PaySubcontractScheduleDto {
+    monto: number;
+    fechaPago: string;
+    medioPago: string;
+    numeroOperacion?: string;
+    notas?: string;
+}

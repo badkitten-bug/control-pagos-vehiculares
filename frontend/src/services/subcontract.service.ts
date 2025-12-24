@@ -35,4 +35,15 @@ export const subcontractService = {
     const response = await api.get<PaginatedResponse<Subcontract>>('/subcontracts', { params });
     return response.data;
   },
+
+  async paySchedule(scheduleId: number, data: {
+    monto: number;
+    fechaPago: string;
+    medioPago: string;
+    numeroOperacion?: string;
+    notas?: string;
+  }): Promise<any> {
+    const response = await api.post(`/subcontracts/schedule/${scheduleId}/pay`, data);
+    return response.data;
+  },
 };

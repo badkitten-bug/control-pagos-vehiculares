@@ -4,10 +4,10 @@ import { ArrowLeft, Plus, DollarSign, FileText } from 'lucide-react';
 import { contractService, paymentService, subcontractService } from '../../services';
 import { Button, Input, Select, StatusBadge, Modal } from '../../components/ui';
 import { SubcontractModal } from '../../components/SubcontractModal';
-import type { Contract, PaymentSchedule, Payment, Subcontract, CreateSubcontractDto } from '../../types';
+import type { Contract, PaymentSchedule, Payment, Subcontract, CreateSubcontractDto, SubcontractSchedule } from '../../types';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
-import { format } from 'date-fns';
+import { format, isBefore, startOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const PAYMENT_METHODS = [
@@ -28,7 +28,9 @@ export function ContractDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isSubcontractModalOpen, setIsSubcontractModalOpen] = useState(false);
+  const [isSubcontractPaymentModalOpen, setIsSubcontractPaymentModalOpen] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<PaymentSchedule | null>(null);
+  const [selectedSubcontractSchedule, setSelectedSubcontractSchedule] = useState<{ subcontract: Subcontract; schedule: SubcontractSchedule } | null>(null);
 
   const { register, handleSubmit, reset, setValue } = useForm();
 
@@ -357,30 +359,49 @@ export function ContractDetail() {
                     )}
                   </div>
                 </div>
-                {/* Show independent schedule if available */}
                 {sub.modalidad === 'Independiente' && sub.cronograma && sub.cronograma.length > 0 && (
                   <div className="mt-4 bg-slate-800/50 rounded-lg p-4">
                     <h4 className="text-sm font-medium text-slate-300 mb-2">Cronograma del Subcontrato</h4>
-                    <div className="grid grid-cols-6 gap-2 text-xs text-slate-400 mb-1">
+                    <div className="grid grid-cols-7 gap-2 text-xs text-slate-400 mb-1">
                       <span>#</span>
                       <span>Vencimiento</span>
                       <span>Monto</span>
                       <span>Pagado</span>
                       <span>Saldo</span>
                       <span>Estado</span>
+                      <span></span>
                     </div>
-                    {sub.cronograma.map((cuota) => (
-                      <div key={cuota.id} className="grid grid-cols-6 gap-2 text-sm py-1 border-t border-slate-700/30">
-                        <span className="text-white">{cuota.numeroCuota}</span>
-                        <span className="text-slate-300">{format(new Date(cuota.fechaVencimiento), 'dd/MM/yy')}</span>
-                        <span className="text-slate-300">S/ {parseFloat(cuota.monto.toString()).toFixed(2)}</span>
-                        <span className="text-slate-300">S/ {parseFloat(cuota.montoPagado.toString()).toFixed(2)}</span>
-                        <span className="text-white font-medium">S/ {parseFloat(cuota.saldo.toString()).toFixed(2)}</span>
-                        <span className={cuota.estado === 'Pagada' ? 'text-green-400' : cuota.estado === 'Vencida' ? 'text-red-400' : 'text-yellow-400'}>
-                          {cuota.estado}
-                        </span>
-                      </div>
-                    ))}
+                    {sub.cronograma.map((cuota) => {
+                      const isPayable = cuota.estado !== 'Pagada' && 
+                        (cuota.estado === 'Vencida' || isBefore(new Date(cuota.fechaVencimiento), startOfDay(new Date())) || 
+                         cuota.fechaVencimiento <= new Date().toISOString().split('T')[0]);
+                      return (
+                        <div key={cuota.id} className="grid grid-cols-7 gap-2 text-sm py-1 border-t border-slate-700/30 items-center">
+                          <span className="text-white">{cuota.numeroCuota}</span>
+                          <span className="text-slate-300">{format(new Date(cuota.fechaVencimiento), 'dd/MM/yy')}</span>
+                          <span className="text-slate-300">S/ {parseFloat(cuota.monto.toString()).toFixed(2)}</span>
+                          <span className="text-slate-300">S/ {parseFloat(cuota.montoPagado.toString()).toFixed(2)}</span>
+                          <span className="text-white font-medium">S/ {parseFloat(cuota.saldo.toString()).toFixed(2)}</span>
+                          <span className={cuota.estado === 'Pagada' ? 'text-green-400' : cuota.estado === 'Vencida' ? 'text-red-400' : 'text-yellow-400'}>
+                            {cuota.estado}
+                          </span>
+                          <span>
+                            {isPayable && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                onClick={() => {
+                                  setSelectedSubcontractSchedule({ subcontract: sub, schedule: cuota });
+                                  setIsSubcontractPaymentModalOpen(true);
+                                }}
+                              >
+                                <DollarSign className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -406,6 +427,98 @@ export function ContractDetail() {
           }
         }}
       />
+
+      {/* Subcontract Payment Modal */}
+      <Modal
+        isOpen={isSubcontractPaymentModalOpen}
+        onClose={() => {
+          setIsSubcontractPaymentModalOpen(false);
+          setSelectedSubcontractSchedule(null);
+        }}
+        title={selectedSubcontractSchedule 
+          ? `Pagar ${selectedSubcontractSchedule.subcontract.tipo} - Cuota #${selectedSubcontractSchedule.schedule.numeroCuota}` 
+          : 'Pagar Subcontrato'}
+        size="md"
+      >
+        {selectedSubcontractSchedule && (
+          <form 
+            onSubmit={handleSubmit(async (data) => {
+              try {
+                // Usar el endpoint específico de pago de subcontratos
+                await subcontractService.paySchedule(selectedSubcontractSchedule.schedule.id, {
+                  monto: parseFloat(data.importe),
+                  fechaPago: data.fechaPago,
+                  medioPago: data.medioPago,
+                  numeroOperacion: data.numeroOperacion,
+                  notas: data.notas,
+                });
+                toast.success('Pago de subcontrato registrado');
+                setIsSubcontractPaymentModalOpen(false);
+                setSelectedSubcontractSchedule(null);
+                loadContract(contract.id);
+              } catch (error: any) {
+                toast.error(error.response?.data?.message || 'Error al registrar pago');
+              }
+            })} 
+            className="space-y-4"
+          >
+            <div className="bg-slate-700/50 rounded-lg p-3 mb-4">
+              <p className="text-sm text-slate-300">
+                <strong>Subcontrato:</strong> {selectedSubcontractSchedule.subcontract.tipo}
+              </p>
+              <p className="text-sm text-slate-300">
+                <strong>Saldo pendiente:</strong> S/ {parseFloat(selectedSubcontractSchedule.schedule.saldo.toString()).toFixed(2)}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Fecha de Pago"
+                type="date"
+                defaultValue={new Date().toISOString().split('T')[0]}
+                {...register('fechaPago')}
+              />
+              <Input
+                label="Importe"
+                type="number"
+                step="0.01"
+                defaultValue={parseFloat(selectedSubcontractSchedule.schedule.saldo.toString()).toFixed(2)}
+                {...register('importe')}
+              />
+            </div>
+            <Select
+              label="Medio de Pago"
+              options={PAYMENT_METHODS}
+              {...register('medioPago')}
+            />
+            <Input
+              label="N° Operación (opcional)"
+              placeholder="000123456"
+              {...register('numeroOperacion')}
+            />
+            <Input
+              label="Notas (opcional)"
+              placeholder="Notas adicionales..."
+              {...register('notas')}
+            />
+            <div className="flex justify-end gap-3 pt-4">
+              <Button 
+                variant="ghost" 
+                type="button" 
+                onClick={() => {
+                  setIsSubcontractPaymentModalOpen(false);
+                  setSelectedSubcontractSchedule(null);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit">
+                Registrar Pago
+              </Button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </div>
   );
 }

@@ -50,3 +50,26 @@ export class SearchSubcontractsDto {
   @IsNumber()
   limit?: number;
 }
+
+export class PaySubcontractScheduleDto {
+  @IsNotEmpty({ message: 'El monto es requerido' })
+  @IsNumber()
+  @Min(0.01, { message: 'El monto debe ser mayor a 0' })
+  monto: number;
+
+  @IsNotEmpty({ message: 'La fecha de pago es requerida' })
+  @IsDateString()
+  fechaPago: string;
+
+  @IsNotEmpty({ message: 'El medio de pago es requerido' })
+  @IsString()
+  medioPago: string;
+
+  @IsOptional()
+  @IsString()
+  numeroOperacion?: string;
+
+  @IsOptional()
+  @IsString()
+  notas?: string;
+}

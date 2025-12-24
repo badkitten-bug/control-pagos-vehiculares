@@ -1,5 +1,5 @@
 import { SubcontractsService } from './subcontracts.service';
-import { CreateSubcontractDto, SearchSubcontractsDto } from './dto/subcontract.dto';
+import { CreateSubcontractDto, SearchSubcontractsDto, PaySubcontractScheduleDto } from './dto/subcontract.dto';
 export declare class SubcontractsController {
     private readonly subcontractsService;
     constructor(subcontractsService: SubcontractsService);
@@ -15,4 +15,5 @@ export declare class SubcontractsController {
     findById(id: number): Promise<import("./subcontract.entity").Subcontract>;
     annul(id: number): Promise<import("./subcontract.entity").Subcontract>;
     getPendingBalance(id: number): Promise<number>;
+    paySchedule(scheduleId: number, dto: PaySubcontractScheduleDto): Promise<import("./subcontract.entity").SubcontractSchedule>;
 }

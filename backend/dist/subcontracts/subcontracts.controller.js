@@ -39,6 +39,9 @@ let SubcontractsController = class SubcontractsController {
     getPendingBalance(id) {
         return this.subcontractsService.getPendingBalance(id);
     }
+    paySchedule(scheduleId, dto) {
+        return this.subcontractsService.paySchedule(scheduleId, dto);
+    }
 };
 exports.SubcontractsController = SubcontractsController;
 __decorate([
@@ -83,6 +86,14 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], SubcontractsController.prototype, "getPendingBalance", null);
+__decorate([
+    (0, common_1.Post)('schedule/:scheduleId/pay'),
+    __param(0, (0, common_1.Param)('scheduleId', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, subcontract_dto_1.PaySubcontractScheduleDto]),
+    __metadata("design:returntype", void 0)
+], SubcontractsController.prototype, "paySchedule", null);
 exports.SubcontractsController = SubcontractsController = __decorate([
     (0, common_1.Controller)('subcontracts'),
     __metadata("design:paramtypes", [subcontracts_service_1.SubcontractsService])

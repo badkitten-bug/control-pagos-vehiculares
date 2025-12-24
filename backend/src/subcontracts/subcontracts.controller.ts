@@ -9,7 +9,7 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { SubcontractsService } from './subcontracts.service';
-import { CreateSubcontractDto, SearchSubcontractsDto } from './dto/subcontract.dto';
+import { CreateSubcontractDto, SearchSubcontractsDto, PaySubcontractScheduleDto } from './dto/subcontract.dto';
 
 @Controller('subcontracts')
 export class SubcontractsController {
@@ -43,5 +43,13 @@ export class SubcontractsController {
   @Get(':id/balance')
   getPendingBalance(@Param('id', ParseIntPipe) id: number) {
     return this.subcontractsService.getPendingBalance(id);
+  }
+
+  @Post('schedule/:scheduleId/pay')
+  paySchedule(
+    @Param('scheduleId', ParseIntPipe) scheduleId: number,
+    @Body() dto: PaySubcontractScheduleDto,
+  ) {
+    return this.subcontractsService.paySchedule(scheduleId, dto);
   }
 }

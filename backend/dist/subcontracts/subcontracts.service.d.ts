@@ -26,4 +26,5 @@ export declare class SubcontractsService {
     getScheduleById(scheduleId: number): Promise<SubcontractSchedule | null>;
     updateSchedulePayment(scheduleId: number, montoPagado: number): Promise<SubcontractSchedule>;
     getPendingBalance(subcontractId: number): Promise<number>;
+    paySchedule(scheduleId: number, dto: any): Promise<SubcontractSchedule>;
 }
