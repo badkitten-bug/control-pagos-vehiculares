@@ -60,9 +60,26 @@ docker compose logs -f frontend
 
 ## Estructura de Contenedores
 
-- `cpv-backend` - API NestJS (puerto 3001)
-- `cpv-frontend` - React/Vite (puerto 5173)
-- `cpv-nginx` - Proxy reverso (puerto 80/443)
+- `cpv-backend` - API NestJS (puerto interno 3001)
+- `cpv-frontend` - React/Vite (puerto interno 80)
+- `cpv-nginx` - Proxy reverso (puerto **8080** externo)
+
+---
+
+## Acceso a la Aplicación
+
+**URL**: `http://TU-IP-VPS:8080`
+
+> **Nota**: Este proyecto usa el puerto 8080 para evitar conflictos con otros proyectos (ej: ASITER usa puerto 80).
+
+---
+
+## Múltiples Proyectos en el VPS
+
+| Proyecto | Ubicación | Puerto |
+|----------|-----------|--------|
+| ASITER | `/home/asiter` | 80, 3002 |
+| Control Pagos Vehiculares | `/opt/control-pagos-vehiculares` | 8080 |
 
 ---
 
